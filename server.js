@@ -121,9 +121,34 @@ function normalizeSportDbMatch(match) {
     home_score: parseScore(match.homeFullTimeScore ?? match.homeScore),
     away_score: parseScore(match.awayFullTimeScore ?? match.awayScore),
     status: match.eventStage || null,
+    tournament_id: match.tournamentId || null,
+    tournament_stage_id: match.tournamentStageId || null,
+    season_id: match.season || null,
     source: "sportdb",
     venue: null
   };
+}
+
+function getMostCommonValue(items, getter) {
+  const counts = new Map();
+
+  items.forEach(item => {
+    const value = getter(item);
+    if (!value) return;
+    counts.set(value, (counts.get(value) || 0) + 1);
+  });
+
+  let bestValue = null;
+  let bestCount = 0;
+
+  counts.forEach((count, value) => {
+    if (count > bestCount) {
+      bestValue = value;
+      bestCount = count;
+    }
+  });
+
+  return bestValue;
 }
 
 function buildConnectedComponents(matches) {
@@ -215,12 +240,31 @@ function inferGroupNames(matches) {
 }
 
 function mergeAndNormalizeMatches(fixtures, results) {
+  const normalizedFixtures = fixtures.map(normalizeSportDbMatch);
+  const normalizedResults = results.map(normalizeSportDbMatch);
+
+  const canonicalTournamentId =
+    getMostCommonValue(normalizedFixtures, match => match.tournament_id) ||
+    getMostCommonValue(normalizedResults, match => match.tournament_id);
+
+  const canonicalStageId =
+    getMostCommonValue(normalizedFixtures, match => match.tournament_stage_id) ||
+    getMostCommonValue(normalizedResults, match => match.tournament_stage_id);
+
+  const canonicalSeasonId =
+    getMostCommonValue(normalizedFixtures, match => match.season_id) ||
+    getMostCommonValue(normalizedResults, match => match.season_id);
+
+  const relevantMatches = [...normalizedFixtures, ...normalizedResults].filter(match => {
+    const tournamentOk = !canonicalTournamentId || match.tournament_id === canonicalTournamentId;
+    const stageOk = !canonicalStageId || match.tournament_stage_id === canonicalStageId;
+    const seasonOk = !canonicalSeasonId || match.season_id === canonicalSeasonId;
+    return tournamentOk && stageOk && seasonOk;
+  });
+
   const matchMap = new Map();
 
-  [...fixtures, ...results].forEach(rawMatch => {
-    const normalized = normalizeSportDbMatch(rawMatch);
-    if (!normalized.id) return;
-
+  relevantMatches.forEach(normalized => {
     const existing = matchMap.get(normalized.id) || {};
     matchMap.set(normalized.id, {
       ...existing,
