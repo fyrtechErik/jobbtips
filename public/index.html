@@ -300,6 +300,39 @@
     color:#fff;
   }
 
+  .stats-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+    gap:12px;
+    margin-bottom:12px;
+  }
+
+  .stat-card {
+    background:linear-gradient(180deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02));
+    border:1px solid rgba(255,215,0,0.18);
+    border-radius:12px;
+    padding:14px;
+  }
+
+  .stat-label {
+    font-size:13px;
+    color:#d9d9d9;
+    margin-bottom:6px;
+  }
+
+  .stat-value {
+    font-size:22px;
+    font-weight:800;
+    color:gold;
+    line-height:1.15;
+  }
+
+  .stat-subtext {
+    margin-top:6px;
+    font-size:13px;
+    color:#f0f0f0;
+  }
+
   @media (max-width: 700px) {
     body { padding:12px; }
 
@@ -365,10 +398,10 @@
   <div id="loginMessage" class="login-message"></div>
 
   <div class="nav">
-    <button onclick="showHome()">📖 Så funkar det</button>
+    <button onclick="showHome()">🏠 Start</button>
     <button onclick="showTips()">⚽ Tips</button>
     <button onclick="showTables()">📊 Grupper</button>
-    <button onclick="showToday()">📅 Dagens matcher</button>
+    <button onclick="showToday()">📖 Så funkar det</button>
   </div>
 
   <button id="refreshBtn" class="submit-btn" onclick="loadMatches()" style="margin-top:0;margin-bottom:12px;">🔄 Uppdatera matcher</button>
@@ -532,7 +565,6 @@ function askPin({ title = "Ange PIN", text = "Skriv din PIN-kod.", placeholder =
     inputEl.placeholder = placeholder;
 
     modal.style.display = "block";
-
     setTimeout(() => inputEl.focus(), 0);
   });
 }
@@ -690,67 +722,10 @@ function renderHome(){
   const el = document.getElementById("home");
   el.innerHTML = `
 <div class="card">
-  <div class="landing-intro">
-    Välkommen till <b>VM-Tips 2026</b>. Här tippar du matcher, samlar poäng, jagar ikoner och klättrar i leaderboarden.
-  </div>
-
-  <div class="landing-grid">
-    <div class="landing-card">
-      <h3>✍️ Så tippar du</h3>
-      <p>Skriv ditt namn högst upp.</p>
-      <p>Gå till <b>Tips</b> och fyll i vad du tror att matchen slutar.</p>
-      <p>När du skickar in första gången väljer du en <b>PIN-kod</b> som används för att logga in på samma namn senare.</p>
-    </div>
-
-    <div class="landing-card">
-      <h3>🏅 Så får du poäng</h3>
-      <p><b>Exakt resultat = 5 poäng</b></p>
-      <p>Exempel: matchen slutar 2–1 och du tippar 2–1.</p>
-      <p><b>Rätt utgång = 3 poäng</b></p>
-      <p>Exempel: matchen slutar 2–1 och du tippar 1–0. Du hade rätt vinnare men inte exakt resultat.</p>
-    </div>
-
-    <div class="landing-card">
-      <h3>🎯 Ikoner att jaga</h3>
-      <div class="icon-row">
-        <div class="icon-pill">👑 Leder leaderboarden</div>
-        <div class="icon-pill">🎯 2 exakta i rad</div>
-        <div class="icon-pill">🔥 2 rätt utgångar i rad</div>
-      </div>
-      <p>Ikonerna är levande. Får du streaken visas ikonen. Missar du nästa match försvinner den igen.</p>
-    </div>
-
-    <div class="landing-card">
-      <h3>🧭 Vad sidorna visar</h3>
-      <p><b>Tips</b> visar kommande och avslutade matcher där du kan lägga dina resultat.</p>
-      <p><b>Grupper</b> visar tabellerna, målskillnad, poäng och vilka lag som just nu går vidare.</p>
-      <p><b>Dagens matcher</b> visar dagens matcher eller nästa speldag samt hur alla har tippat i procent.</p>
-    </div>
-
-    <div class="landing-card">
-      <h3>🔐 PIN och namn</h3>
-      <p>Om ett namn redan finns måste du ange rätt PIN för att öppna sparade tips.</p>
-      <p>Fel PIN låser inte fast appen. Du kan försöka igen direkt.</p>
-    </div>
-
-    <div class="landing-card">
-      <h3>🔄 Uppdatering</h3>
-      <p>Matchdata uppdateras manuellt med knappen <b>Uppdatera matcher</b>.</p>
-      <p>Detta minskar mängden uppdateringar och risken för app-krasch.</p>
-    </div>
-    <div class="landing-card">
-  <h3>📲 Lägg på hemskärmen</h3>
-  <p>Vill du använda VM-Tips som en app på mobilen?</p>
-  <p><b>iPhone:</b> öppna sidan i Safari, tryck på <b>Dela</b> och välj <b>Lägg till på hemskärmen</b>.</p>
-  <p><b>Android:</b> öppna sidan i Chrome, tryck på menyn uppe till höger och välj <b>Lägg till på hemskärmen</b>. På vissa enheter kan det stå <b>Installera</b> eller <b>Installera app</b>.</p>
-</div>
-<div class="landing-card">
-  <h3>🆕 Uppdateringar 2026-04-23</h3>
-  <p><b>🌟 Dagens bästa</b> visas i leaderboarden för den som tagit flest poäng idag.</p>
-  <p><b>🎯🔥 Streaks</b> visas live när du får flera rätt i rad (exakta eller utgångar).</p>
-  <p><b>Inloggning</b> Blockerat möjligheten att ha samma namn i aplikationen.</p>
-</div>
-  </div>
+  <h2 style="margin-top:0;">📅 Dagens matcher</h2>
+  <p class="landing-intro" style="margin-bottom:0;">
+    Här ser du dagens matcher, eller nästa speldag om det inte spelas idag, plus hur deltagarna har tippat.
+  </p>
 </div>`;
 }
 
@@ -763,6 +738,132 @@ async function restoreLoginFromSession(){
   usernameEl.value = savedName;
 
   await loginUser(savedName, savedPin, false);
+}
+
+async function getCompetitionSnapshot(){
+  const { data, error } = await supabase.from(TIPS_TABLE).select("*");
+  if (error) throw error;
+
+  const users = {};
+
+  (data || []).forEach(t => {
+    const uid = t.user_id || (t.name && t.pin ? `${t.name}_${t.pin}` : t.name);
+    if (!uid) return;
+
+    if (!users[uid]) {
+      users[uid] = {
+        name: t.name || "Okänd",
+        resultat: 0,
+        utgang: 0,
+        total: 0,
+        tips: {},
+        exactStreak: 0,
+        outcomeStreak: 0,
+        todayPoints: 0
+      };
+    }
+
+    users[uid].tips[t.match_id] = {
+      home_score: Number(t.home_score),
+      away_score: Number(t.away_score)
+    };
+  });
+
+  const finishedMatches = [...fixtures]
+    .filter(f => f.home_score != null && f.away_score != null)
+    .sort((a, b) => {
+      const aTime = a.kickoff_utc ? new Date(a.kickoff_utc).getTime() : 0;
+      const bTime = b.kickoff_utc ? new Date(b.kickoff_utc).getTime() : 0;
+      if (aTime !== bTime) return aTime - bTime;
+      return String(a.id || "").localeCompare(String(b.id || ""), "sv");
+    });
+
+  const todayDate = new Date().toISOString().split("T")[0];
+
+  finishedMatches.forEach(f => {
+    const realOutcome =
+      f.home_score > f.away_score ? "1" :
+      f.home_score < f.away_score ? "2" : "X";
+
+    const isToday = f.kickoff_utc && f.kickoff_utc.startsWith(todayDate);
+
+    Object.values(users).forEach(u => {
+      const tip = u.tips[f.id];
+      if (!tip) {
+        u.exactStreak = 0;
+        u.outcomeStreak = 0;
+        return;
+      }
+
+      const isExact = tip.home_score === f.home_score && tip.away_score === f.away_score;
+
+      const guessOutcome =
+        tip.home_score > tip.away_score ? "1" :
+        tip.home_score < tip.away_score ? "2" : "X";
+
+      const isOutcomeOnly = !isExact && guessOutcome === realOutcome;
+
+      if (isExact) {
+        u.resultat += 1;
+        u.total += 5;
+        u.exactStreak += 1;
+        u.outcomeStreak = 0;
+        if (isToday) u.todayPoints += 5;
+      } else if (isOutcomeOnly) {
+        u.utgang += 1;
+        u.total += 3;
+        u.outcomeStreak += 1;
+        u.exactStreak = 0;
+        if (isToday) u.todayPoints += 3;
+      } else {
+        u.exactStreak = 0;
+        u.outcomeStreak = 0;
+      }
+    });
+  });
+
+  const rows = Object.values(users)
+    .sort((a, b) =>
+      b.total - a.total ||
+      b.resultat - a.resultat ||
+      b.utgang - a.utgang ||
+      a.name.localeCompare(b.name, "sv")
+    );
+
+  const bestToday = rows.length ? Math.max(...rows.map(u => u.todayPoints)) : 0;
+  const leader = rows[0] || null;
+  const todayLeader = bestToday > 0 ? rows.find(u => u.todayPoints === bestToday) || null : null;
+  const exactLeader = rows.length
+    ? [...rows].sort((a, b) => b.resultat - a.resultat || b.total - a.total || a.name.localeCompare(b.name, "sv"))[0]
+    : null;
+  const hottest = rows.length
+    ? [...rows].sort((a, b) => {
+        const aHeat = Math.max(a.exactStreak, a.outcomeStreak);
+        const bHeat = Math.max(b.exactStreak, b.outcomeStreak);
+        return bHeat - aHeat || b.total - a.total || a.name.localeCompare(b.name, "sv");
+      })[0]
+    : null;
+
+  let hottestLabel = "Ingen streak ännu";
+  if (hottest) {
+    if (hottest.exactStreak >= hottest.outcomeStreak && hottest.exactStreak > 0) {
+      hottestLabel = `${hottest.exactStreak} exakta i rad`;
+    } else if (hottest.outcomeStreak > 0) {
+      hottestLabel = `${hottest.outcomeStreak} rätt utgångar i rad`;
+    }
+  }
+
+  return {
+    tips: data || [],
+    rows,
+    bestToday,
+    leader,
+    todayLeader,
+    exactLeader,
+    hottest,
+    hottestLabel,
+    participantCount: rows.length
+  };
 }
 
 /* LOAD */
@@ -1017,12 +1118,12 @@ function updateResult(id){
     return;
   }
 
-  const groupKey = match.group || match.group_name;
+  const groupKey = getGroupKey(match);
   const sectionKey = (match.home_score == null || match.away_score == null) ? "upcoming" : "finished";
-  const groupStage = fixtures.filter(f => f.group || f.group_name);
+  const groupStage = fixtures.filter(f => getGroupKey(f));
 
   const sectionMatches = groupStage.filter(f => {
-    const sameGroup = (f.group || f.group_name) === groupKey;
+    const sameGroup = getGroupKey(f) === groupKey;
     const sameSection = sectionKey === "upcoming"
       ? (f.home_score == null || f.away_score == null)
       : (f.home_score != null && f.away_score != null);
@@ -1101,107 +1202,17 @@ async function submitTips(){
 /* LEADERBOARD */
 async function updateLeaderboard(){
   try {
-    const { data } = await supabase.from(TIPS_TABLE).select("*");
+    const snapshot = await getCompetitionSnapshot();
     const el = document.getElementById("leaderboard");
     el.innerHTML = "";
 
-    if (!data || !data.length) {
+    if (!snapshot.tips.length) {
       el.innerHTML = `
 <div class="card">
 <p>Inga tippningar ännu.</p>
 </div>`;
       return;
     }
-
-    const users = {};
-
-    data.forEach(t => {
-      const uid = t.user_id || (t.name && t.pin ? `${t.name}_${t.pin}` : t.name);
-      if (!uid) return;
-
-      if (!users[uid]) {
-        users[uid] = {
-          name: t.name || "Okänd",
-          resultat: 0,
-          utgang: 0,
-          total: 0,
-          tips: {},
-          exactStreak: 0,
-          outcomeStreak: 0,
-          todayPoints: 0
-        };
-      }
-
-      users[uid].tips[t.match_id] = {
-        home_score: Number(t.home_score),
-        away_score: Number(t.away_score)
-      };
-    });
-
-    const finishedMatches = [...fixtures]
-      .filter(f => f.home_score != null && f.away_score != null)
-      .sort((a, b) => {
-        const aTime = a.kickoff_utc ? new Date(a.kickoff_utc).getTime() : 0;
-        const bTime = b.kickoff_utc ? new Date(b.kickoff_utc).getTime() : 0;
-        if (aTime !== bTime) return aTime - bTime;
-        return String(a.id || "").localeCompare(String(b.id || ""), "sv");
-      });
-
-    const todayDate = new Date().toISOString().split("T")[0];
-
-    finishedMatches.forEach(f => {
-      const realOutcome =
-        f.home_score > f.away_score ? "1" :
-        f.home_score < f.away_score ? "2" : "X";
-
-      const isToday = f.kickoff_utc && f.kickoff_utc.startsWith(todayDate);
-
-      Object.values(users).forEach(u => {
-        const tip = u.tips[f.id];
-        if (!tip) {
-          u.exactStreak = 0;
-          u.outcomeStreak = 0;
-          return;
-        }
-
-        const isExact = tip.home_score === f.home_score && tip.away_score === f.away_score;
-
-        const guessOutcome =
-          tip.home_score > tip.away_score ? "1" :
-          tip.home_score < tip.away_score ? "2" : "X";
-
-        const isOutcomeOnly = !isExact && guessOutcome === realOutcome;
-
-        if (isExact) {
-          u.resultat += 1;
-          u.total += 5;
-          u.exactStreak += 1;
-          u.outcomeStreak = 0;
-          if (isToday) u.todayPoints += 5;
-
-        } else if (isOutcomeOnly) {
-          u.utgang += 1;
-          u.total += 3;
-          u.outcomeStreak += 1;
-          u.exactStreak = 0;
-          if (isToday) u.todayPoints += 3;
-
-        } else {
-          u.exactStreak = 0;
-          u.outcomeStreak = 0;
-        }
-      });
-    });
-
-    const rows = Object.values(users)
-      .sort((a, b) =>
-        b.total - a.total ||
-        b.resultat - a.resultat ||
-        b.utgang - a.utgang ||
-        a.name.localeCompare(b.name, "sv")
-      );
-
-    const bestToday = rows.length ? Math.max(...rows.map(u => u.todayPoints)) : 0;
 
     el.innerHTML = `
 <div class="card">
@@ -1212,10 +1223,10 @@ async function updateLeaderboard(){
 <th>Utgång</th>
 <th>Total</th>
 </tr>
-${rows.map((u, index) => {
+${snapshot.rows.map((u, index) => {
   const icons = [
     index === 0 ? "👑" : "",
-    (bestToday > 0 && u.todayPoints === bestToday) ? "🌟" : "",
+    (snapshot.bestToday > 0 && u.todayPoints === snapshot.bestToday) ? "🌟" : "",
     u.exactStreak >= 2 ? "🎯" : "",
     u.outcomeStreak >= 2 ? "🔥" : ""
   ].filter(Boolean).join(" ");
@@ -1331,70 +1342,183 @@ ${teams.map((t, i) => `
 async function renderToday(){
   try {
     const el = document.getElementById("today");
+    el.innerHTML = `
+<div class="card">
+  <div class="landing-intro">
+    Den här appen är byggd som en separat VM-pool med eget matchflöde, egen datakälla och egen tips-tabell.
+  </div>
 
-    if (matchesError) {
-      el.innerHTML = `
-<h2>📅 Dagens matcher</h2>
+  <div class="landing-grid">
+    <div class="landing-card">
+      <h3>✍️ Så tippar du</h3>
+      <p>Skriv ditt namn högst upp.</p>
+      <p>Gå till <b>Tips</b> och fyll i vad du tror att matchen slutar.</p>
+      <p>När du skickar in första gången väljer du en <b>PIN-kod</b> som används för att öppna samma namn senare.</p>
+    </div>
+
+    <div class="landing-card">
+      <h3>🏅 Poängsystem</h3>
+      <p><b>Exakt resultat = 5 poäng</b></p>
+      <p>Exempel: matchen slutar 2–1 och du tippar 2–1.</p>
+      <p><b>Rätt utgång = 3 poäng</b></p>
+      <p>Exempel: matchen slutar 2–1 och du tippar 1–0. Du hade rätt vinnare men inte exakt resultat.</p>
+    </div>
+
+    <div class="landing-card">
+      <h3>🎯 Tävlingsikoner</h3>
+      <div class="icon-row">
+        <div class="icon-pill">👑 Leder leaderboarden</div>
+        <div class="icon-pill">🎯 2 exakta i rad</div>
+        <div class="icon-pill">🔥 2 rätt utgångar i rad</div>
+      </div>
+      <p>Ikonerna är levande. Får du streaken visas ikonen, och missar du nästa match kan den försvinna igen.</p>
+    </div>
+
+    <div class="landing-card">
+      <h3>🧭 Så är appen upplagd</h3>
+      <p><b>Start</b> visar dagens matcher eller nästa speldag samt hur alla har tippat i procent.</p>
+      <p><b>Tips</b> visar kommande och avslutade matcher där du kan lägga dina resultat.</p>
+      <p><b>Grupper</b> visar tabeller, målskillnad, poäng och vilka lag som just nu ligger bäst till.</p>
+    </div>
+
+    <div class="landing-card">
+      <h3>🔐 PIN och namn</h3>
+      <p>Om ett namn redan finns måste du ange rätt PIN för att öppna sparade tips för just det namnet.</p>
+      <p>Fel PIN låser inte appen. Du kan försöka igen direkt eller välja ett annat namn.</p>
+    </div>
+
+    <div class="landing-card">
+      <h3>🔄 Matchdata</h3>
+      <p>Matchlistan hämtas via SportDB/Flashscore och uppdateras manuellt med knappen <b>Uppdatera matcher</b>.</p>
+      <p>Det gör appen stabilare och minskar risken för onödiga API-anrop.</p>
+    </div>
+
+    <div class="landing-card">
+      <h3>📲 Lägg på hemskärmen</h3>
+      <p>Vill du använda appen som en snabb genväg på mobilen går det fint.</p>
+      <p><b>iPhone:</b> öppna sidan i Safari, tryck på <b>Dela</b> och välj <b>Lägg till på hemskärmen</b>.</p>
+      <p><b>Android:</b> öppna sidan i Chrome, tryck på menyn och välj <b>Lägg till på hemskärmen</b> eller <b>Installera app</b>.</p>
+    </div>
+
+    <div class="landing-card">
+      <h3>🏁 Vad som gör den här versionen annorlunda</h3>
+      <p><b>Startsidan</b> fokuserar på dagens matcher och tävlingsläget direkt.</p>
+      <p><b>Leaderboarden</b> lyfter fram dagsform och streaks, inte bara totalpoäng.</p>
+      <p><b>Tipsen</b> sparas i en separat pool så den här appen kan leva sitt eget liv.</p>
+    </div>
+  </div>
+</div>`;
+  } catch (e) {
+    console.error("today error", e);
+  }
+}
+
+async function renderHomeMatches(){
+  const el = document.getElementById("home");
+
+  try {
+    const snapshot = await getCompetitionSnapshot();
+
+    el.innerHTML += `
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Totalledare</div>
+    <div class="stat-value">${snapshot.leader ? snapshot.leader.name : "Ingen ännu"}</div>
+    <div class="stat-subtext">${snapshot.leader ? `${snapshot.leader.total} poäng totalt` : "Väntar på första tipset"}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Dagens bästa</div>
+    <div class="stat-value">${snapshot.todayLeader ? snapshot.todayLeader.name : "Ingen idag"}</div>
+    <div class="stat-subtext">${snapshot.todayLeader ? `${snapshot.todayLeader.todayPoints} poäng idag` : "Inga avslutade matcher idag ännu"}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Flest exakta</div>
+    <div class="stat-value">${snapshot.exactLeader ? snapshot.exactLeader.name : "Ingen ännu"}</div>
+    <div class="stat-subtext">${snapshot.exactLeader ? `${snapshot.exactLeader.resultat} exakta resultat` : "Väntar på första fullträffen"}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Hetast just nu</div>
+    <div class="stat-value">${snapshot.hottest ? snapshot.hottest.name : "Ingen ännu"}</div>
+    <div class="stat-subtext">${snapshot.hottest ? snapshot.hottestLabel : "Ingen aktiv streak ännu"}</div>
+  </div>
+</div>
+<div class="card">
+  <div class="landing-grid">
+    <div class="landing-card">
+      <h3>🏁 Läget i tävlingen</h3>
+      <p><b>${snapshot.participantCount}</b> deltagare har tippat i poolen just nu.</p>
+      <p>Här ser du både ledare och hur spelarna tror att dagens matcher slutar.</p>
+    </div>
+    <div class="landing-card">
+      <h3>🔥 Varför startsidan är viktig</h3>
+      <p>Start samlar dagens matcher, favoritutfall, dagsform och heta streaks på ett ställe.</p>
+    </div>
+  </div>
+</div>`;
+  } catch (e) {
+    console.error("home stats error", e);
+  }
+
+  if (matchesError) {
+    el.innerHTML += `
 <div class="card">
 <p>Matcher kunde inte laddas: ${matchesError}</p>
 </div>`;
-      return;
-    }
+    return;
+  }
 
-    el.innerHTML = "<h2>📅 Dagens matcher</h2>";
-
-    if (!fixtures.length) {
-      el.innerHTML += `
+  if (!fixtures.length) {
+    el.innerHTML += `
 <div class="card">
 <p>Inga matcher att visa.</p>
 </div>`;
-      return;
+    return;
+  }
+
+  const todayDate = new Date().toISOString().split("T")[0];
+
+  let list = fixtures.filter(f => f.kickoff_utc && f.kickoff_utc.startsWith(todayDate));
+
+  if (!list.length) {
+    const future = fixtures
+      .filter(f => f.kickoff_utc && new Date(f.kickoff_utc) > new Date())
+      .sort((a, b) => new Date(a.kickoff_utc) - new Date(b.kickoff_utc));
+
+    if (future.length) {
+      const nextDate = new Date(future[0].kickoff_utc).toISOString().split("T")[0];
+      list = future.filter(f =>
+        f.kickoff_utc && new Date(f.kickoff_utc).toISOString().startsWith(nextDate)
+      );
     }
+  }
 
-    const todayDate = new Date().toISOString().split("T")[0];
-
-    let list = fixtures.filter(f => f.kickoff_utc && f.kickoff_utc.startsWith(todayDate));
-
-    if (!list.length) {
-      const future = fixtures
-        .filter(f => f.kickoff_utc && new Date(f.kickoff_utc) > new Date())
-        .sort((a, b) => new Date(a.kickoff_utc) - new Date(b.kickoff_utc));
-
-      if (future.length) {
-        const nextDate = new Date(future[0].kickoff_utc).toISOString().split("T")[0];
-        list = future.filter(f =>
-          f.kickoff_utc && new Date(f.kickoff_utc).toISOString().startsWith(nextDate)
-        );
-      }
-    }
-
-    if (!list.length) {
-      el.innerHTML += `
+  if (!list.length) {
+    el.innerHTML += `
 <div class="card">
 <p>Inga matcher idag eller kommande speldag hittades.</p>
 </div>`;
-      return;
-    }
+    return;
+  }
 
-    const { data: tips } = await supabase.from(TIPS_TABLE).select("*");
+  const { data: tips } = await supabase.from(TIPS_TABLE).select("*");
 
-    list.forEach(f => {
-      const matchTips = (tips || []).filter(t => t.match_id === f.id);
+  list.forEach(f => {
+    const matchTips = (tips || []).filter(t => t.match_id === f.id);
 
-      let c1 = 0, cX = 0, c2 = 0;
-      matchTips.forEach(t => {
-        if (t.home_score > t.away_score) c1++;
-        else if (t.home_score < t.away_score) c2++;
-        else cX++;
-      });
+    let c1 = 0, cX = 0, c2 = 0;
+    matchTips.forEach(t => {
+      if (t.home_score > t.away_score) c1++;
+      else if (t.home_score < t.away_score) c2++;
+      else cX++;
+    });
 
-      const total = matchTips.length || 1;
-      const p1 = Math.round((c1 / total) * 100);
-      const pX = Math.round((cX / total) * 100);
-      const p2 = Math.round((c2 / total) * 100);
-      const maxPick = Math.max(p1, pX, p2);
+    const total = matchTips.length || 1;
+    const p1 = Math.round((c1 / total) * 100);
+    const pX = Math.round((cX / total) * 100);
+    const p2 = Math.round((c2 / total) * 100);
+    const maxPick = Math.max(p1, pX, p2);
 
-      el.innerHTML += `
+    el.innerHTML += `
 <div class="card">
 <div>
 <b>${getTeamName(f.home_team)} - ${getTeamName(f.away_team)}</b><br>
@@ -1407,10 +1531,7 @@ ${new Date(f.kickoff_utc).toLocaleString("sv-SE")}
 <div class="${p2 === maxPick ? "favorite-pick" : ""}">2: ${p2}% ${p2 === maxPick ? "🔥" : ""}</div>
 </div>
 </div>`;
-    });
-  } catch (e) {
-    console.error("today error", e);
-  }
+  });
 }
 
 /* NAV */
@@ -1425,6 +1546,8 @@ function updateViewState(){
 function showHome(){
   currentView = "home";
   updateViewState();
+  renderHome();
+  renderHomeMatches();
 }
 
 function showTips(){
@@ -1455,7 +1578,11 @@ window.toggleMatchGroup = toggleMatchGroup;
 /* START */
 renderHome();
 updateViewState();
-loadMatches().then(() => restoreLoginFromSession());
+loadMatches().then(() => {
+  renderHome();
+  renderHomeMatches();
+  return restoreLoginFromSession();
+});
 
 document.getElementById("username").addEventListener("change", async () => {
   const name = document.getElementById("username").value.trim();
