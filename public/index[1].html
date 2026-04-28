@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VM-Tips 2026</title>
+
+<style>
+  .match-entry {
+    border-radius: 10px;
+    padding: 6px;
+    transition: box-shadow 0.2s ease, background 0.2s ease;
+  }
+
+  .match-entry:focus-within {
+    box-shadow: 0 0 14px rgba(255,215,0,0.45);
+    background: rgba(255,215,0,0.06);
+  }
+
+  .favorite-pick {
+    background: gold;
+    color: black;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 12px rgba(255,215,0,0.45);
+  }
+
+  body { font-family: system-ui; background:#0b0b0b; color:white; padding:20px; }
+  .container { max-width:900px; margin:auto; }
+  h1 { text-align:center; color:gold; }
+
+  .nav { display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap; }
+  .nav button {
+    flex:1;
+    min-width:160px;
+    padding:10px;
+    background:#222;
+    color:gold;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+  }
+
+  .match-row {
+    display:grid;
+    grid-template-columns:1fr 120px 120px;
+    gap:10px;
+    align-items:center;
+    margin-bottom:10px;
+  }
+
+  .match-main {
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+
+  .match-meta {
+    font-size:13px;
+    color:#cfcfcf;
+    line-height:1.35;
+  }
+
+  .match-meta .venue {
+    color:#e7d98a;
+  }
+
+  input.score {
+    width:50px;
+    height:40px;
+    text-align:center;
+    background:#1a1a1a;
+    color:gold;
+    border-radius:8px;
+    border:1px solid rgba(255,215,0,0.4);
+  }
+
+  input.score:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .score-box { display:flex; justify-content:center; gap:6px; }
+
+  .result span {
+    padding:6px 10px;
+    background:#222;
+    border-radius:6px;
+    display:inline-block;
+  }
+
+  .selected { background:gold!important; color:black; }
+
+  .card {
+    background:#111;
+    border:1px solid rgba(255,215,0,0.2);
+    padding:14px;
+    border-radius:12px;
+    margin-bottom:12px;
+  }
+
+  .match-group-card {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .group-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 14px;
+    background: transparent;
+    color: white;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+  }
+
+  .group-toggle.open {
+    background: rgba(255,215,0,0.08);
+  }
+
+  .group-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .group-toggle-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .group-toggle-title {
+    color: gold;
+    font-weight: 700;
+  }
+
+  .group-toggle-count {
+    font-size: 13px;
+    color: #d8d8d8;
+  }
+
+  .group-chevron {
+    font-size: 20px;
+    line-height: 1;
+    color: gold;
+    flex-shrink: 0;
+  }
+
+  .group-content {
+    padding: 0 14px 14px 14px;
+  }
+
+  .group-content.collapsed {
+    display: none;
+  }
+
+  .submit-btn {
+    width:100%;
+    padding:14px;
+    background:gold;
+    color:black;
+    border:none;
+    border-radius:10px;
+    margin-top:10px;
+    cursor:pointer;
+  }
+
+  .login-message {
+    min-height: 22px;
+    margin-bottom: 10px;
+    color: #ffb3b3;
+    font-size: 14px;
+  }
+
+  table { border-collapse: collapse; }
+  th, td { padding:6px 4px; }
+
+  .group-table {
+    width: 100%;
+    table-layout: fixed;
+    text-align: center;
+  }
+
+  .group-table th,
+  .group-table td {
+    padding: 10px 6px;
+  }
+
+  .group-table th {
+    color: gold;
+    border-bottom: 1px solid rgba(255,215,0,0.25);
+  }
+
+  .group-table tr + tr td {
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .group-table .team-col {
+    width: 34%;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .group-table .stat-col {
+    width: 7%;
+  }
+
+  .qualify-row td {
+    background: rgba(255,215,0,0.06);
+    border-top-color: rgba(255,215,0,0.18);
+    border-bottom-color: rgba(255,215,0,0.18);
+  }
+
+  .qualify-row td:first-child {
+    box-shadow: inset 2px 0 0 gold;
+  }
+
+  .qualify-row td:last-child {
+    box-shadow: inset -2px 0 0 gold;
+  }
+
+  .goal-diff-plus {
+    color: #7CFC98;
+    font-weight: 700;
+  }
+
+  .goal-diff-minus {
+    color: #ff8a8a;
+    font-weight: 700;
+  }
+
+  .goal-diff-zero {
+    color: #ddd;
+    font-weight: 700;
+  }
+
+  .points-pill {
+    display: inline-block;
+    min-width: 32px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(255,215,0,0.14);
+    color: gold;
+    font-weight: 800;
+  }
+
+  .landing-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:12px;
+  }
+
+  .landing-card {
+    background:#111;
+    border:1px solid rgba(255,215,0,0.2);
+    border-radius:12px;
+    padding:16px;
+  }
+
+  .landing-card h3 {
+    margin-top:0;
+    color:gold;
+  }
+
+  .landing-card p {
+    margin:8px 0 0 0;
+    line-height:1.45;
+    color:#eee;
+  }
+
+  .landing-intro {
+    font-size:16px;
+    line-height:1.5;
+    margin-bottom:14px;
+    color:#f5f5f5;
+  }
+
+  .icon-row {
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:10px;
+  }
+
+  .icon-pill {
+    background:#1b1b1b;
+    border:1px solid rgba(255,215,0,0.18);
+    border-radius:999px;
+    padding:8px 12px;
+    color:#fff;
+  }
+
+  @media (max-width: 700px) {
+    body { padding:12px; }
+
+    .nav {
+      flex-direction:column;
+    }
+
+    .nav button {
+      width:100%;
+      min-width:0;
+    }
+
+    .match-row {
+      grid-template-columns:1fr;
+      gap:8px;
+    }
+
+    .score-box,
+    .result {
+      justify-content:flex-start;
+    }
+
+    input.score {
+      width:56px;
+      height:44px;
+      font-size:16px;
+    }
+
+    .group-toggle {
+      padding: 14px 12px;
+    }
+
+    .group-content {
+      padding: 0 12px 12px 12px;
+    }
+
+    .group-table {
+      font-size:12px;
+    }
+
+    .group-table th,
+    .group-table td {
+      padding:8px 4px;
+    }
+
+    .group-table .team-col {
+      width:40%;
+    }
+
+    .group-table .stat-col {
+      width:auto;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>🌍 VM-Tips 2026</h1>
+
+  <input id="username" placeholder="Ditt namn" style="width:100%;padding:10px;margin-bottom:10px;">
+  <div id="loginMessage" class="login-message"></div>
+
+  <div class="nav">
+    <button onclick="showHome()">📖 Så funkar det</button>
+    <button onclick="showTips()">⚽ Tips</button>
+    <button onclick="showTables()">📊 Grupper</button>
+    <button onclick="showToday()">📅 Dagens matcher</button>
+  </div>
+
+  <button id="refreshBtn" class="submit-btn" onclick="loadMatches()" style="margin-top:0;margin-bottom:12px;">🔄 Uppdatera matcher</button>
+
+  <div id="home"></div>
+  <div id="matches" style="display:none;"></div>
+  <div id="tables" style="display:none;"></div>
+  <div id="today" style="display:none;"></div>
+
+  <button id="submitBtn" class="submit-btn" onclick="submitTips()" style="display:none;">✅ Skicka in</button>
+
+  <h2>🏆 Leaderboard</h2>
+  <div id="leaderboard"></div>
+</div>
+
+<div id="pinModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:9999;padding:16px;">
+  <div style="max-width:420px;margin:12vh auto 0 auto;background:#111;border:1px solid rgba(255,215,0,0.22);border-radius:16px;padding:18px;">
+    <h3 id="pinModalTitle" style="margin:0 0 10px 0;color:gold;">Ange PIN</h3>
+    <p id="pinModalText" style="margin:0 0 12px 0;color:#ddd;">Skriv din PIN-kod.</p>
+    <input
+      id="pinModalInput"
+      type="password"
+      inputmode="numeric"
+      autocomplete="one-time-code"
+      placeholder="PIN"
+      style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,215,0,0.28);background:#0f0f0f;color:white;font:inherit;margin-bottom:12px;"
+    >
+    <div style="display:flex;gap:10px;">
+      <button id="pinModalCancel" style="flex:1;padding:12px;border:none;border-radius:10px;background:#2a2a2a;color:white;">Avbryt</button>
+      <button id="pinModalConfirm" style="flex:1;padding:12px;border:none;border-radius:10px;background:gold;color:black;font-weight:700;">OK</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+const supabase = createClient(
+  "https://odqjwiwlpufprzbdbtiq.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kcWp3aXdscHVmcHJ6YmRidGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODE5NDYsImV4cCI6MjA5MjM1Nzk0Nn0.xcP0X4iws2xTvxkMLyKsTvE9YUqiVTvC3UtjhhAg-UM"
+);
+
+let fixtures = [];
+let selections = {};
+let currentView = "home";
+let matchesError = "";
+let locked = false;
+const matchGroupState = {};
+let pinModalResolver = null;
+
+const teamNamesSv = {
+  "Argentina": "Argentina",
+  "Australia": "Australien",
+  "Austria": "Österrike",
+  "Belgium": "Belgien",
+  "Bolivia": "Bolivia",
+  "Brazil": "Brasilien",
+  "Bulgaria": "Bulgarien",
+  "Cameroon": "Kamerun",
+  "Canada": "Kanada",
+  "Chile": "Chile",
+  "China": "Kina",
+  "Colombia": "Colombia",
+  "Costa Rica": "Costa Rica",
+  "Croatia": "Kroatien",
+  "Czechia": "Tjeckien",
+  "Denmark": "Danmark",
+  "Ecuador": "Ecuador",
+  "Egypt": "Egypten",
+  "England": "England",
+  "France": "Frankrike",
+  "Germany": "Tyskland",
+  "Ghana": "Ghana",
+  "Greece": "Grekland",
+  "Hungary": "Ungern",
+  "IR Iran": "Iran",
+  "Iraq": "Irak",
+  "Italy": "Italien",
+  "Côte d'Ivoire": "Elfenbenskusten",
+  "Japan": "Japan",
+  "Mexico": "Mexiko",
+  "Morocco": "Marocko",
+  "Netherlands": "Nederländerna",
+  "New Zealand": "Nya Zeeland",
+  "Nigeria": "Nigeria",
+  "Norway": "Norge",
+  "Paraguay": "Paraguay",
+  "Peru": "Peru",
+  "Poland": "Polen",
+  "Portugal": "Portugal",
+  "Qatar": "Qatar",
+  "Romania": "Rumänien",
+  "Saudi Arabia": "Saudiarabien",
+  "Scotland": "Skottland",
+  "Senegal": "Senegal",
+  "Serbia": "Serbien",
+  "South Africa": "Sydafrika",
+  "Spain": "Spanien",
+  "Sweden": "Sverige",
+  "Switzerland": "Schweiz",
+  "Tunisia": "Tunisien",
+  "Turkey": "Turkiet",
+  "Ukraine": "Ukraina",
+  "United States": "USA",
+  "Uruguay": "Uruguay",
+  "Venezuela": "Venezuela",
+  "Wales": "Wales",
+  "Haiti": "Haiti",
+  "Cape Verde": "Kap Verde",
+  "Cabo Verde": "Kap Verde",
+  "Korea Republic": "Sydkorea",
+  "Republic of Korea": "Sydkorea",
+  "USA": "USA",
+  "United States of America": "USA"
+};
+
+const getTeamName = t => {
+  const name = t?.name || t || "Okänd";
+  return teamNamesSv[name] || name;
+};
+
+function setLoginMessage(message = ""){
+  const el = document.getElementById("loginMessage");
+  if (el) el.textContent = message;
+}
+
+function saveSession(name, pin){
+  sessionStorage.setItem("vm_name", name);
+  sessionStorage.setItem("vm_pin", pin);
+}
+
+function clearSession(){
+  sessionStorage.removeItem("vm_name");
+  sessionStorage.removeItem("vm_pin");
+}
+
+function askPin({ title = "Ange PIN", text = "Skriv din PIN-kod.", placeholder = "PIN" } = {}) {
+  return new Promise(resolve => {
+    pinModalResolver = resolve;
+
+    const modal = document.getElementById("pinModal");
+    const titleEl = document.getElementById("pinModalTitle");
+    const textEl = document.getElementById("pinModalText");
+    const inputEl = document.getElementById("pinModalInput");
+
+    titleEl.textContent = title;
+    textEl.textContent = text;
+    inputEl.value = "";
+    inputEl.placeholder = placeholder;
+
+    modal.style.display = "block";
+
+    setTimeout(() => inputEl.focus(), 0);
+  });
+}
+
+function closePinModal(value = null) {
+  const modal = document.getElementById("pinModal");
+  modal.style.display = "none";
+
+  if (pinModalResolver) {
+    pinModalResolver(value);
+    pinModalResolver = null;
+  }
+}
+
+function formatMatchDateTime(f){
+  if (!f?.kickoff_utc) return "";
+  const d = new Date(f.kickoff_utc);
+  if (isNaN(d.getTime())) return "";
+
+  const datePart = d.toLocaleDateString("sv-SE", {
+    weekday: "short",
+    day: "numeric",
+    month: "long"
+  });
+
+  const timePart = d.toLocaleTimeString("sv-SE", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  return `${datePart} • ${timePart}`;
+}
+
+function getVenue(f){
+  if (!f || typeof f !== "object") return "";
+
+  const candidates = [
+    f.venue,
+    f.venue_name,
+    f.stadium,
+    f.stadium_name,
+    f.location,
+    f.city,
+    f.arena,
+    f.ground,
+    f.match_venue,
+    f.match_stadium,
+    f?.venue?.name,
+    f?.stadium?.name,
+    f?.location?.name
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+
+  return "";
+}
+
+function buildMatchMeta(f){
+  const dateTime = formatMatchDateTime(f);
+  const venue = getVenue(f);
+
+  if (!dateTime && !venue) return "";
+
+  return `
+<div class="match-meta">
+  ${dateTime ? `<span>${dateTime}</span>` : ""}
+  ${dateTime && venue ? `<span> • </span>` : ""}
+  ${venue ? `<span class="venue">${venue}</span>` : ""}
+</div>`;
+}
+
+function getMatchGroupStateKey(sectionKey, groupKey){
+  return `${sectionKey}::${groupKey}`;
+}
+
+function getMatchGroupDomKey(sectionKey, groupKey){
+  return `${sectionKey}_${String(groupKey).replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+}
+
+function isMatchGroupOpen(sectionKey, groupKey, index){
+  const stateKey = getMatchGroupStateKey(sectionKey, groupKey);
+  if (!(stateKey in matchGroupState)) {
+    matchGroupState[stateKey] = sectionKey === "upcoming" && index === 0;
+  }
+  return matchGroupState[stateKey];
+}
+
+function toggleMatchGroup(sectionKey, groupKey){
+  const stateKey = getMatchGroupStateKey(sectionKey, groupKey);
+  const domKey = getMatchGroupDomKey(sectionKey, groupKey);
+  const content = document.getElementById(`group_content_${domKey}`);
+  const button = document.getElementById(`group_toggle_${domKey}`);
+  const chevron = document.getElementById(`group_chevron_${domKey}`);
+  const isOpen = !(matchGroupState[stateKey] ?? false);
+
+  matchGroupState[stateKey] = isOpen;
+
+  if (content) content.classList.toggle("collapsed", !isOpen);
+  if (button) {
+    button.classList.toggle("open", isOpen);
+    button.setAttribute("aria-expanded", String(isOpen));
+  }
+  if (chevron) chevron.textContent = isOpen ? "▾" : "▸";
+}
+
+function countPredictedMatches(matches){
+  return matches.filter(f => {
+    const tip = selections[f.id];
+    return tip &&
+      Number.isInteger(tip.home_score) &&
+      Number.isInteger(tip.away_score);
+  }).length;
+}
+
+function updateGroupProgress(sectionKey, groupKey, matches){
+  const domKey = getMatchGroupDomKey(sectionKey, groupKey);
+  const el = document.getElementById(`group_count_${domKey}`);
+  if (!el) return;
+  el.textContent = `${countPredictedMatches(matches)}/${matches.length} matcher tippade`;
+}
+
+function refreshAllGroupProgress(){
+  const groupStage = fixtures.filter(f => f.group || f.group_name);
+  const upcoming = groupStage.filter(f => f.home_score == null || f.away_score == null);
+  const finished = groupStage.filter(f => f.home_score != null && f.away_score != null);
+
+  const groupedUpcoming = {};
+  upcoming.forEach(f => {
+    const key = f.group || f.group_name || "A";
+    if (!groupedUpcoming[key]) groupedUpcoming[key] = [];
+    groupedUpcoming[key].push(f);
+  });
+
+  const groupedFinished = {};
+  finished.forEach(f => {
+    const key = f.group || f.group_name || "A";
+    if (!groupedFinished[key]) groupedFinished[key] = [];
+    groupedFinished[key].push(f);
+  });
+
+  Object.keys(groupedUpcoming).forEach(gr => {
+    updateGroupProgress("upcoming", gr, groupedUpcoming[gr]);
+  });
+
+  Object.keys(groupedFinished).forEach(gr => {
+    updateGroupProgress("finished", gr, groupedFinished[gr]);
+  });
+}
+
+function renderHome(){
+  const el = document.getElementById("home");
+  el.innerHTML = `
+<div class="card">
+  <div class="landing-intro">
+    Välkommen till <b>VM-Tips 2026</b>. Här tippar du matcher, samlar poäng, jagar ikoner och klättrar i leaderboarden.
+  </div>
+
+  <div class="landing-grid">
+    <div class="landing-card">
+      <h3>✍️ Så tippar du</h3>
+      <p>Skriv ditt namn högst upp.</p>
+      <p>Gå till <b>Tips</b> och fyll i vad du tror att matchen slutar.</p>
+      <p>När du skickar in första gången väljer du en <b>PIN-kod</b> som används för att logga in på samma namn senare.</p>
+    </div>
+
+    <div class="landing-card">
+      <h3>🏅 Så får du poäng</h3>
+      <p><b>Exakt resultat = 5 poäng</b></p>
+      <p>Exempel: matchen slutar 2–1 och du tippar 2–1.</p>
+      <p><b>Rätt utgång = 3 poäng</b></p>
+      <p>Exempel: matchen slutar 2–1 och du tippar 1–0. Du hade rätt vinnare men inte exakt resultat.</p>
+    </div>
+
+    <div class="landing-card">
+      <h3>🎯 Ikoner att jaga</h3>
+      <div class="icon-row">
+        <div class="icon-pill">👑 Leder leaderboarden</div>
+        <div class="icon-pill">🎯 2 exakta i rad</div>
+        <div class="icon-pill">🔥 2 rätt utgångar i rad</div>
+      </div>
+      <p>Ikonerna är levande. Får du streaken visas ikonen. Missar du nästa match försvinner den igen.</p>
+    </div>
+
+    <div class="landing-card">
+      <h3>🧭 Vad sidorna visar</h3>
+      <p><b>Tips</b> visar kommande och avslutade matcher där du kan lägga dina resultat.</p>
+      <p><b>Grupper</b> visar tabellerna, målskillnad, poäng och vilka lag som just nu går vidare.</p>
+      <p><b>Dagens matcher</b> visar dagens matcher eller nästa speldag samt hur alla har tippat i procent.</p>
+    </div>
+
+    <div class="landing-card">
+      <h3>🔐 PIN och namn</h3>
+      <p>Om ett namn redan finns måste du ange rätt PIN för att öppna sparade tips.</p>
+      <p>Fel PIN låser inte fast appen. Du kan försöka igen direkt.</p>
+    </div>
+
+    <div class="landing-card">
+      <h3>🔄 Uppdatering</h3>
+      <p>Matchdata uppdateras manuellt med knappen <b>Uppdatera matcher</b>.</p>
+      <p>Detta minskar mängden uppdateringar och risken för app-krasch.</p>
+    </div>
+    <div class="landing-card">
+  <h3>📲 Lägg på hemskärmen</h3>
+  <p>Vill du använda VM-Tips som en app på mobilen?</p>
+  <p><b>iPhone:</b> öppna sidan i Safari, tryck på <b>Dela</b> och välj <b>Lägg till på hemskärmen</b>.</p>
+  <p><b>Android:</b> öppna sidan i Chrome, tryck på menyn uppe till höger och välj <b>Lägg till på hemskärmen</b>. På vissa enheter kan det stå <b>Installera</b> eller <b>Installera app</b>.</p>
+</div>
+<div class="landing-card">
+  <h3>🆕 Uppdateringar 2026-04-23</h3>
+  <p><b>🌟 Dagens bästa</b> visas i leaderboarden för den som tagit flest poäng idag.</p>
+  <p><b>🎯🔥 Streaks</b> visas live när du får flera rätt i rad (exakta eller utgångar).</p>
+  <p><b>Inloggning</b> Blockerat möjligheten att ha samma namn i aplikationen.</p>
+</div>
+  </div>
+</div>`;
+}
+
+async function restoreLoginFromSession(){
+  const savedName = sessionStorage.getItem("vm_name");
+  const savedPin = sessionStorage.getItem("vm_pin");
+  if (!savedName || !savedPin) return;
+
+  const usernameEl = document.getElementById("username");
+  usernameEl.value = savedName;
+
+  await loginUser(savedName, savedPin, false);
+}
+
+/* LOAD */
+async function loadMatches(){
+  try {
+    const res = await fetch("/matches");
+    const raw = await res.json();
+
+    if (!res.ok || raw?.error) {
+      matchesError = raw?.friendlyMessage || raw?.error || `HTTP ${res.status}`;
+      fixtures = [];
+    } else {
+      matchesError = "";
+      fixtures =
+        Array.isArray(raw) ? raw :
+        Array.isArray(raw.matches) ? raw.matches :
+        Array.isArray(raw.fixtures) ? raw.fixtures :
+        Array.isArray(raw.data) ? raw.data :
+        [];
+    }
+
+    if (!Array.isArray(fixtures)) fixtures = [];
+
+    renderMatches();
+    renderTables();
+    renderToday();
+    await updateLeaderboard();
+  } catch (e) {
+    matchesError = e.message || "Okänt fel vid laddning av matcher";
+    fixtures = [];
+    renderMatches();
+    renderTables();
+    renderToday();
+    console.error("load error", e);
+  }
+}
+
+/* LOGIN */
+async function loginUser(nameArg = null, pinArg = null, askForPin = true){
+  const name = (nameArg ?? document.getElementById("username").value).trim();
+  if (!name) return false;
+
+  setLoginMessage("");
+
+  const { data, error } = await supabase
+    .from("tips")
+    .select("*")
+    .eq("name", name);
+
+  if (error) {
+    alert(error.message);
+    return false;
+  }
+
+  if (!data || !data.length) {
+    locked = false;
+    selections = {};
+    clearSession();
+    renderMatches();
+    return false;
+  }
+
+  let pin = pinArg;
+  if (!pin && askForPin) {
+    pin = await askPin({
+      title: "Ange PIN",
+      text: `Ange PIN för ${name}`,
+      placeholder: "PIN"
+    });
+  }
+
+  if (!pin) return false;
+
+  const userTips = data.filter(t => String(t.pin) === String(pin));
+
+  if (!userTips.length) {
+    locked = false;
+    selections = {};
+    clearSession();
+    renderMatches();
+    setLoginMessage("Fel PIN. Försök igen.");
+    return false;
+  }
+
+  selections = {};
+  userTips.forEach(t => {
+    selections[t.match_id] = {
+      home_score: Number(t.home_score),
+      away_score: Number(t.away_score)
+    };
+  });
+
+  locked = true;
+  saveSession(name, pin);
+  setLoginMessage("");
+  renderMatches();
+  return true;
+}
+
+/* MATCHES */
+function renderMatches(){
+  const container = document.getElementById("matches");
+  container.innerHTML = "";
+
+  if (matchesError) {
+    container.innerHTML = `
+<div class="card">
+<h2>⚠️ Matcher kunde inte laddas</h2>
+<p>${matchesError}</p>
+</div>`;
+    return;
+  }
+
+  const groupStage = fixtures.filter(f => f.group || f.group_name);
+  const upcoming = groupStage.filter(f => f.home_score == null || f.away_score == null);
+  const finished = groupStage.filter(f => f.home_score != null && f.away_score != null);
+
+  function groupBy(list){
+    const grouped = {};
+    list.forEach(f => {
+      const key = f.group || f.group_name || "A";
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(f);
+    });
+    return grouped;
+  }
+
+  function block(title, list, sectionKey){
+    if (!list.length) return "";
+
+    const grouped = groupBy(list);
+    let html = `<h2>${title}</h2>`;
+
+    Object.keys(grouped).sort().forEach((gr, index) => {
+      const domKey = getMatchGroupDomKey(sectionKey, gr);
+      const isOpen = isMatchGroupOpen(sectionKey, gr, index);
+      const matches = grouped[gr];
+
+      html += `
+<div class="card match-group-card">
+  <button
+    type="button"
+    class="group-toggle ${isOpen ? "open" : ""}"
+    id="group_toggle_${domKey}"
+    aria-expanded="${isOpen}"
+    onclick="toggleMatchGroup('${sectionKey}', '${String(gr).replace(/'/g, "\\'")}')"
+  >
+    <span class="group-toggle-label">
+      <span>🏆</span>
+      <span class="group-toggle-text">
+        <span class="group-toggle-title">Grupp ${gr}</span>
+        <span class="group-toggle-count" id="group_count_${domKey}">${countPredictedMatches(matches)}/${matches.length} matcher tippade</span>
+      </span>
+    </span>
+    <span class="group-chevron" id="group_chevron_${domKey}">${isOpen ? "▾" : "▸"}</span>
+  </button>
+
+  <div class="group-content ${isOpen ? "" : "collapsed"}" id="group_content_${domKey}">
+`;
+
+      matches.forEach(f => {
+        const s = selections[f.id] || {};
+        const done = f.home_score != null && f.away_score != null;
+        const metaHtml = buildMatchMeta(f);
+
+        html += `
+<div class="match-row match-entry">
+<div class="match-main">
+  <div>
+    ${getTeamName(f.home_team)} - ${getTeamName(f.away_team)}
+    ${done ? "<br><span style='color:gold;'>(" + f.home_score + "-" + f.away_score + ")</span>" : ""}
+  </div>
+  ${metaHtml}
+</div>
+
+<div class="score-box">
+<input class="score" id="h_${f.id}" value="${s.home_score ?? ""}" ${locked ? "disabled" : ""}>
+-
+<input class="score" id="a_${f.id}" value="${s.away_score ?? ""}" ${locked ? "disabled" : ""}>
+</div>
+
+<div class="result">
+<span id="${f.id}_1">1</span>
+<span id="${f.id}_X">X</span>
+<span id="${f.id}_2">2</span>
+</div>
+</div>`;
+      });
+
+      html += `
+  </div>
+</div>`;
+    });
+
+    return html;
+  }
+
+  const upcomingHtml = block("📅 Kommande matcher", upcoming, "upcoming");
+  const finishedHtml = block("✅ Avslutade matcher", finished, "finished");
+
+  if (!upcomingHtml && !finishedHtml) {
+    container.innerHTML = `<div class="card"><p>Inga matcher att visa.</p></div>`;
+    return;
+  }
+
+  container.innerHTML += upcomingHtml;
+  container.innerHTML += finishedHtml;
+
+  groupStage.forEach(f => {
+    const h = document.getElementById(`h_${f.id}`);
+    const a = document.getElementById(`a_${f.id}`);
+    if (h && !locked) h.oninput = () => updateResult(f.id);
+    if (a && !locked) a.oninput = () => updateResult(f.id);
+  });
+
+  refreshAllGroupProgress();
+
+  setTimeout(() => {
+    Object.keys(selections).forEach(id => updateResult(id));
+  }, 0);
+}
+
+/* RESULT */
+function updateResult(id){
+  const h = parseInt(document.getElementById(`h_${id}`)?.value);
+  const a = parseInt(document.getElementById(`a_${id}`)?.value);
+
+  if (isNaN(h) || isNaN(a)) {
+    delete selections[id];
+
+    ["1", "X", "2"].forEach(x => {
+      document.getElementById(`${id}_${x}`)?.classList.remove("selected");
+    });
+
+    refreshAllGroupProgress();
+    return;
+  }
+
+  selections[id] = { home_score: h, away_score: a };
+
+  const r = h > a ? "1" : h < a ? "2" : "X";
+
+  ["1", "X", "2"].forEach(x => {
+    document.getElementById(`${id}_${x}`)?.classList.remove("selected");
+  });
+  document.getElementById(`${id}_${r}`)?.classList.add("selected");
+
+  const match = fixtures.find(f => String(f.id) === String(id));
+  if (!match) {
+    refreshAllGroupProgress();
+    return;
+  }
+
+  const groupKey = match.group || match.group_name;
+  const sectionKey = (match.home_score == null || match.away_score == null) ? "upcoming" : "finished";
+  const groupStage = fixtures.filter(f => f.group || f.group_name);
+
+  const sectionMatches = groupStage.filter(f => {
+    const sameGroup = (f.group || f.group_name) === groupKey;
+    const sameSection = sectionKey === "upcoming"
+      ? (f.home_score == null || f.away_score == null)
+      : (f.home_score != null && f.away_score != null);
+    return sameGroup && sameSection;
+  });
+
+  updateGroupProgress(sectionKey, groupKey, sectionMatches);
+}
+
+/* SUBMIT */
+async function submitTips(){
+  const name = document.getElementById("username").value.trim();
+  if (!name) return alert("Skriv namn");
+  if (!Object.keys(selections).length) return alert("Fyll i minst ett tips");
+
+  setLoginMessage("");
+
+  const { data: existing, error: existingError } = await supabase
+    .from("tips")
+    .select("*")
+    .eq("name", name);
+
+  if (existingError) return alert(existingError.message);
+
+  if (existing && existing.length) {
+    const pin = await askPin({
+      title: "Ange PIN",
+      text: `Namnet ${name} finns redan. Ange PIN.`,
+      placeholder: "PIN"
+    });
+
+    if (!pin) return;
+
+    const match = existing.find(t => String(t.pin) === String(pin));
+
+    if (!match) {
+      setLoginMessage("Fel PIN.");
+      alert("Fel PIN.");
+      return;
+    }
+
+    await loginUser(name, pin, false);
+    alert("Inloggad!");
+    return;
+  }
+
+  const pin = await askPin({
+    title: "Välj PIN",
+    text: "Välj en PIN-kod för att spara dina tips.",
+    placeholder: "PIN"
+  });
+
+  if (!pin) return;
+
+  const payload = Object.entries(selections).map(([id, t]) => ({
+    user_id: name + "_" + pin,
+    name,
+    pin,
+    match_id: Number(id),
+    home_score: t.home_score,
+    away_score: t.away_score
+  }));
+
+  const { error } = await supabase.from("tips").insert(payload);
+  if (error) return alert(error.message);
+
+  locked = true;
+  saveSession(name, pin);
+  setLoginMessage("");
+  renderMatches();
+
+  alert("Sparat!");
+  await updateLeaderboard();
+}
+
+/* LEADERBOARD */
+async function updateLeaderboard(){
+  try {
+    const { data } = await supabase.from("tips").select("*");
+    const el = document.getElementById("leaderboard");
+    el.innerHTML = "";
+
+    if (!data || !data.length) {
+      el.innerHTML = `
+<div class="card">
+<p>Inga tippningar ännu.</p>
+</div>`;
+      return;
+    }
+
+    const users = {};
+
+    data.forEach(t => {
+      const uid = t.user_id || (t.name && t.pin ? `${t.name}_${t.pin}` : t.name);
+      if (!uid) return;
+
+      if (!users[uid]) {
+        users[uid] = {
+          name: t.name || "Okänd",
+          resultat: 0,
+          utgang: 0,
+          total: 0,
+          tips: {},
+          exactStreak: 0,
+          outcomeStreak: 0,
+          todayPoints: 0
+        };
+      }
+
+      users[uid].tips[t.match_id] = {
+        home_score: Number(t.home_score),
+        away_score: Number(t.away_score)
+      };
+    });
+
+    const finishedMatches = [...fixtures]
+      .filter(f => f.home_score != null && f.away_score != null)
+      .sort((a, b) => {
+        const aTime = a.kickoff_utc ? new Date(a.kickoff_utc).getTime() : 0;
+        const bTime = b.kickoff_utc ? new Date(b.kickoff_utc).getTime() : 0;
+        if (aTime !== bTime) return aTime - bTime;
+        return Number(a.id || 0) - Number(b.id || 0);
+      });
+
+    const todayDate = new Date().toISOString().split("T")[0];
+
+    finishedMatches.forEach(f => {
+      const realOutcome =
+        f.home_score > f.away_score ? "1" :
+        f.home_score < f.away_score ? "2" : "X";
+
+      const isToday = f.kickoff_utc && f.kickoff_utc.startsWith(todayDate);
+
+      Object.values(users).forEach(u => {
+        const tip = u.tips[f.id];
+        if (!tip) {
+          u.exactStreak = 0;
+          u.outcomeStreak = 0;
+          return;
+        }
+
+        const isExact = tip.home_score === f.home_score && tip.away_score === f.away_score;
+
+        const guessOutcome =
+          tip.home_score > tip.away_score ? "1" :
+          tip.home_score < tip.away_score ? "2" : "X";
+
+        const isOutcomeOnly = !isExact && guessOutcome === realOutcome;
+
+        if (isExact) {
+          u.resultat += 1;
+          u.total += 5;
+          u.exactStreak += 1;
+          u.outcomeStreak = 0;
+          if (isToday) u.todayPoints += 5;
+
+        } else if (isOutcomeOnly) {
+          u.utgang += 1;
+          u.total += 3;
+          u.outcomeStreak += 1;
+          u.exactStreak = 0;
+          if (isToday) u.todayPoints += 3;
+
+        } else {
+          u.exactStreak = 0;
+          u.outcomeStreak = 0;
+        }
+      });
+    });
+
+    const rows = Object.values(users)
+      .sort((a, b) =>
+        b.total - a.total ||
+        b.resultat - a.resultat ||
+        b.utgang - a.utgang ||
+        a.name.localeCompare(b.name, "sv")
+      );
+
+    const bestToday = rows.length ? Math.max(...rows.map(u => u.todayPoints)) : 0;
+
+    el.innerHTML = `
+<div class="card">
+<table style="width:100%; text-align:center;">
+<tr>
+<th style="text-align:left;">Namn</th>
+<th>Resultat</th>
+<th>Utgång</th>
+<th>Total</th>
+</tr>
+${rows.map((u, index) => {
+  const icons = [
+    index === 0 ? "👑" : "",
+    (bestToday > 0 && u.todayPoints === bestToday) ? "🌟" : "",
+    u.exactStreak >= 2 ? "🎯" : "",
+    u.outcomeStreak >= 2 ? "🔥" : ""
+  ].filter(Boolean).join(" ");
+
+  return `
+<tr>
+<td style="text-align:left;">${u.name}${icons ? " " + icons : ""}</td>
+<td>${u.resultat}</td>
+<td>${u.utgang}</td>
+<td><b>${u.total}</b></td>
+</tr>`;
+}).join("")}
+</table>
+</div>`;
+  } catch (e) {
+    console.error("leaderboard error", e);
+  }
+}
+
+/* TABELLER */
+function renderTables(){
+  const el = document.getElementById("tables");
+
+  if (matchesError) {
+    el.innerHTML = `
+<h2>📊 Grupper</h2>
+<div class="card">
+<p>Matcher kunde inte laddas: ${matchesError}</p>
+</div>`;
+    return;
+  }
+
+  if (!fixtures.length) {
+    el.innerHTML = `
+<h2>📊 Grupper</h2>
+<div class="card">
+<p>Inga matcher att visa.</p>
+</div>`;
+    return;
+  }
+
+  el.innerHTML = "<h2>📊 Grupper</h2>";
+
+  const groups = {};
+
+  fixtures.forEach(f => {
+    const g = f.group || f.group_name || "A";
+
+    if (!groups[g]) groups[g] = {};
+
+    const home = getTeamName(f.home_team);
+    const away = getTeamName(f.away_team);
+
+    if (!groups[g][home]) groups[g][home] = { M:0, V:0, O:0, F:0, GM:0, IM:0, P:0 };
+    if (!groups[g][away]) groups[g][away] = { M:0, V:0, O:0, F:0, GM:0, IM:0, P:0 };
+
+    if (f.home_score != null && f.away_score != null) {
+      const h = groups[g][home];
+      const a = groups[g][away];
+
+      h.M++; a.M++;
+      h.GM += f.home_score; h.IM += f.away_score;
+      a.GM += f.away_score; a.IM += f.home_score;
+
+      if (f.home_score > f.away_score) {
+        h.V++; h.P += 3; a.F++;
+      } else if (f.home_score < f.away_score) {
+        a.V++; a.P += 3; h.F++;
+      } else {
+        h.O++; a.O++; h.P++; a.P++;
+      }
+    }
+  });
+
+  Object.keys(groups).sort().forEach(g => {
+    const teams = Object.entries(groups[g])
+      .map(([name, s]) => ({ ...s, name, diff: s.GM - s.IM }))
+      .sort((a, b) => b.P - a.P || b.diff - a.diff || b.GM - a.GM);
+
+    el.innerHTML += `
+<div class="card">
+<h3>🏆 Grupp ${g}</h3>
+<table class="group-table">
+<tr>
+<th class="team-col">Lag</th>
+<th class="stat-col">M</th>
+<th class="stat-col">V</th>
+<th class="stat-col">O</th>
+<th class="stat-col">F</th>
+<th class="stat-col">GM</th>
+<th class="stat-col">IM</th>
+<th class="stat-col">+/-</th>
+<th class="stat-col">P</th>
+</tr>
+${teams.map((t, i) => `
+<tr class="${i < 2 ? "qualify-row" : ""}">
+<td class="team-col" title="${t.name}">${t.name}</td>
+<td class="stat-col">${t.M}</td>
+<td class="stat-col">${t.V}</td>
+<td class="stat-col">${t.O}</td>
+<td class="stat-col">${t.F}</td>
+<td class="stat-col">${t.GM}</td>
+<td class="stat-col">${t.IM}</td>
+<td class="stat-col ${t.diff > 0 ? "goal-diff-plus" : t.diff < 0 ? "goal-diff-minus" : "goal-diff-zero"}">${t.diff > 0 ? "+" : ""}${t.diff}</td>
+<td class="stat-col"><span class="points-pill">${t.P}</span></td>
+</tr>`).join("")}
+</table>
+</div>`;
+  });
+}
+
+/* TODAY */
+async function renderToday(){
+  try {
+    const el = document.getElementById("today");
+
+    if (matchesError) {
+      el.innerHTML = `
+<h2>📅 Dagens matcher</h2>
+<div class="card">
+<p>Matcher kunde inte laddas: ${matchesError}</p>
+</div>`;
+      return;
+    }
+
+    el.innerHTML = "<h2>📅 Dagens matcher</h2>";
+
+    if (!fixtures.length) {
+      el.innerHTML += `
+<div class="card">
+<p>Inga matcher att visa.</p>
+</div>`;
+      return;
+    }
+
+    const todayDate = new Date().toISOString().split("T")[0];
+
+    let list = fixtures.filter(f => f.kickoff_utc && f.kickoff_utc.startsWith(todayDate));
+
+    if (!list.length) {
+      const future = fixtures
+        .filter(f => f.kickoff_utc && new Date(f.kickoff_utc) > new Date())
+        .sort((a, b) => new Date(a.kickoff_utc) - new Date(b.kickoff_utc));
+
+      if (future.length) {
+        const nextDate = new Date(future[0].kickoff_utc).toISOString().split("T")[0];
+        list = future.filter(f =>
+          f.kickoff_utc && new Date(f.kickoff_utc).toISOString().startsWith(nextDate)
+        );
+      }
+    }
+
+    if (!list.length) {
+      el.innerHTML += `
+<div class="card">
+<p>Inga matcher idag eller kommande speldag hittades.</p>
+</div>`;
+      return;
+    }
+
+    const { data: tips } = await supabase.from("tips").select("*");
+
+    list.forEach(f => {
+      const matchTips = (tips || []).filter(t => t.match_id === f.id);
+
+      let c1 = 0, cX = 0, c2 = 0;
+      matchTips.forEach(t => {
+        if (t.home_score > t.away_score) c1++;
+        else if (t.home_score < t.away_score) c2++;
+        else cX++;
+      });
+
+      const total = matchTips.length || 1;
+      const p1 = Math.round((c1 / total) * 100);
+      const pX = Math.round((cX / total) * 100);
+      const p2 = Math.round((c2 / total) * 100);
+      const maxPick = Math.max(p1, pX, p2);
+
+      el.innerHTML += `
+<div class="card">
+<div>
+<b>${getTeamName(f.home_team)} - ${getTeamName(f.away_team)}</b><br>
+${new Date(f.kickoff_utc).toLocaleString("sv-SE")}
+</div>
+
+<div style="margin-top:10px;display:flex;gap:10px;">
+<div class="${p1 === maxPick ? "favorite-pick" : ""}">1: ${p1}% ${p1 === maxPick ? "🔥" : ""}</div>
+<div class="${pX === maxPick ? "favorite-pick" : ""}">X: ${pX}% ${pX === maxPick ? "🔥" : ""}</div>
+<div class="${p2 === maxPick ? "favorite-pick" : ""}">2: ${p2}% ${p2 === maxPick ? "🔥" : ""}</div>
+</div>
+</div>`;
+    });
+  } catch (e) {
+    console.error("today error", e);
+  }
+}
+
+/* NAV */
+function updateViewState(){
+  document.getElementById("home").style.display = currentView === "home" ? "block" : "none";
+  document.getElementById("matches").style.display = currentView === "tips" ? "block" : "none";
+  document.getElementById("tables").style.display = currentView === "tables" ? "block" : "none";
+  document.getElementById("today").style.display = currentView === "today" ? "block" : "none";
+  document.getElementById("submitBtn").style.display = currentView === "tips" ? "block" : "none";
+}
+
+function showHome(){
+  currentView = "home";
+  updateViewState();
+}
+
+function showTips(){
+  currentView = "tips";
+  updateViewState();
+}
+
+function showTables(){
+  currentView = "tables";
+  updateViewState();
+  renderTables();
+}
+
+function showToday(){
+  currentView = "today";
+  updateViewState();
+  renderToday();
+}
+
+window.showHome = showHome;
+window.showTips = showTips;
+window.showTables = showTables;
+window.showToday = showToday;
+window.submitTips = submitTips;
+window.loadMatches = loadMatches;
+window.toggleMatchGroup = toggleMatchGroup;
+
+/* START */
+renderHome();
+updateViewState();
+loadMatches().then(() => restoreLoginFromSession());
+
+document.getElementById("username").addEventListener("change", async () => {
+  const name = document.getElementById("username").value.trim();
+  if (!name) {
+    locked = false;
+    selections = {};
+    clearSession();
+    setLoginMessage("");
+    renderMatches();
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("tips")
+    .select("id")
+    .eq("name", name)
+    .limit(1);
+
+  if (!error && data && data.length) {
+    await loginUser(name, null, true);
+  } else {
+    locked = false;
+    selections = {};
+    clearSession();
+    setLoginMessage("");
+    renderMatches();
+  }
+});
+
+document.getElementById("pinModalCancel").addEventListener("click", () => {
+  closePinModal(null);
+});
+
+document.getElementById("pinModalConfirm").addEventListener("click", () => {
+  const value = document.getElementById("pinModalInput").value.trim();
+  closePinModal(value || null);
+});
+
+document.getElementById("pinModalInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const value = document.getElementById("pinModalInput").value.trim();
+    closePinModal(value || null);
+  }
+
+  if (e.key === "Escape") {
+    e.preventDefault();
+    closePinModal(null);
+  }
+});
+</script>
+</body>
+</html>
