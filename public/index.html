@@ -410,6 +410,7 @@ const supabase = createClient(
   "https://odqjwiwlpufprzbdbtiq.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kcWp3aXdscHVmcHJ6YmRidGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODE5NDYsImV4cCI6MjA5MjM1Nzk0Nn0.xcP0X4iws2xTvxkMLyKsTvE9YUqiVTvC3UtjhhAg-UM"
 );
+const TIPS_TABLE = "jobb_tips";
 
 let fixtures = [];
 let selections = {};
@@ -434,8 +435,11 @@ const teamNamesSv = {
   "Colombia": "Colombia",
   "Costa Rica": "Costa Rica",
   "Croatia": "Kroatien",
+  "Curacao": "Curacao",
   "Czechia": "Tjeckien",
+  "Czech Republic": "Tjeckien",
   "Denmark": "Danmark",
+  "D.R. Congo": "DR Kongo",
   "Ecuador": "Ecuador",
   "Egypt": "Egypten",
   "England": "England",
@@ -445,6 +449,7 @@ const teamNamesSv = {
   "Greece": "Grekland",
   "Hungary": "Ungern",
   "IR Iran": "Iran",
+  "Iran": "Iran",
   "Iraq": "Irak",
   "Italy": "Italien",
   "Côte d'Ivoire": "Elfenbenskusten",
@@ -481,6 +486,9 @@ const teamNamesSv = {
   "Cabo Verde": "Kap Verde",
   "Korea Republic": "Sydkorea",
   "Republic of Korea": "Sydkorea",
+  "South Korea": "Sydkorea",
+  "Ivory Coast": "Elfenbenskusten",
+  "Bosnia & Herzegovina": "Bosnien och Hercegovina",
   "USA": "USA",
   "United States of America": "USA"
 };
@@ -489,6 +497,10 @@ const getTeamName = t => {
   const name = t?.name || t || "Okänd";
   return teamNamesSv[name] || name;
 };
+
+function getGroupKey(match) {
+  return match.group || match.group_name || null;
+}
 
 function setLoginMessage(message = ""){
   const el = document.getElementById("loginMessage");
@@ -645,20 +657,22 @@ function updateGroupProgress(sectionKey, groupKey, matches){
 }
 
 function refreshAllGroupProgress(){
-  const groupStage = fixtures.filter(f => f.group || f.group_name);
+  const groupStage = fixtures.filter(f => getGroupKey(f));
   const upcoming = groupStage.filter(f => f.home_score == null || f.away_score == null);
   const finished = groupStage.filter(f => f.home_score != null && f.away_score != null);
 
   const groupedUpcoming = {};
   upcoming.forEach(f => {
-    const key = f.group || f.group_name || "A";
+    const key = getGroupKey(f);
+    if (!key) return;
     if (!groupedUpcoming[key]) groupedUpcoming[key] = [];
     groupedUpcoming[key].push(f);
   });
 
   const groupedFinished = {};
   finished.forEach(f => {
-    const key = f.group || f.group_name || "A";
+    const key = getGroupKey(f);
+    if (!key) return;
     if (!groupedFinished[key]) groupedFinished[key] = [];
     groupedFinished[key].push(f);
   });
@@ -794,7 +808,7 @@ async function loginUser(nameArg = null, pinArg = null, askForPin = true){
   setLoginMessage("");
 
   const { data, error } = await supabase
-    .from("tips")
+    .from(TIPS_TABLE)
     .select("*")
     .eq("name", name);
 
@@ -862,14 +876,15 @@ function renderMatches(){
     return;
   }
 
-  const groupStage = fixtures.filter(f => f.group || f.group_name);
+  const groupStage = fixtures.filter(f => getGroupKey(f));
   const upcoming = groupStage.filter(f => f.home_score == null || f.away_score == null);
   const finished = groupStage.filter(f => f.home_score != null && f.away_score != null);
 
   function groupBy(list){
     const grouped = {};
     list.forEach(f => {
-      const key = f.group || f.group_name || "A";
+      const key = getGroupKey(f);
+      if (!key) return;
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(f);
     });
@@ -1026,7 +1041,7 @@ async function submitTips(){
   setLoginMessage("");
 
   const { data: existing, error: existingError } = await supabase
-    .from("tips")
+    .from(TIPS_TABLE)
     .select("*")
     .eq("name", name);
 
@@ -1066,12 +1081,12 @@ async function submitTips(){
     user_id: name + "_" + pin,
     name,
     pin,
-    match_id: Number(id),
+    match_id: String(id),
     home_score: t.home_score,
     away_score: t.away_score
   }));
 
-  const { error } = await supabase.from("tips").insert(payload);
+  const { error } = await supabase.from(TIPS_TABLE).insert(payload);
   if (error) return alert(error.message);
 
   locked = true;
@@ -1086,7 +1101,7 @@ async function submitTips(){
 /* LEADERBOARD */
 async function updateLeaderboard(){
   try {
-    const { data } = await supabase.from("tips").select("*");
+    const { data } = await supabase.from(TIPS_TABLE).select("*");
     const el = document.getElementById("leaderboard");
     el.innerHTML = "";
 
@@ -1129,7 +1144,7 @@ async function updateLeaderboard(){
         const aTime = a.kickoff_utc ? new Date(a.kickoff_utc).getTime() : 0;
         const bTime = b.kickoff_utc ? new Date(b.kickoff_utc).getTime() : 0;
         if (aTime !== bTime) return aTime - bTime;
-        return Number(a.id || 0) - Number(b.id || 0);
+        return String(a.id || "").localeCompare(String(b.id || ""), "sv");
       });
 
     const todayDate = new Date().toISOString().split("T")[0];
@@ -1246,8 +1261,8 @@ function renderTables(){
 
   const groups = {};
 
-  fixtures.forEach(f => {
-    const g = f.group || f.group_name || "A";
+  fixtures.filter(f => getGroupKey(f)).forEach(f => {
+    const g = getGroupKey(f);
 
     if (!groups[g]) groups[g] = {};
 
@@ -1361,7 +1376,7 @@ async function renderToday(){
       return;
     }
 
-    const { data: tips } = await supabase.from("tips").select("*");
+    const { data: tips } = await supabase.from(TIPS_TABLE).select("*");
 
     list.forEach(f => {
       const matchTips = (tips || []).filter(t => t.match_id === f.id);
@@ -1454,7 +1469,7 @@ document.getElementById("username").addEventListener("change", async () => {
   }
 
   const { data, error } = await supabase
-    .from("tips")
+    .from(TIPS_TABLE)
     .select("id")
     .eq("name", name)
     .limit(1);
