@@ -264,4 +264,43 @@ function buildFriendlyError(error) {
 app.get("/matches", async (req, res) => {
   try {
     const now = Date.now();
-    const hasFreshCache =
+    const hasFreshCache = matchesCache && (now - matchesCacheTime) < CACHE_MS;
+
+    if (hasFreshCache) {
+      return res.json(matchesCache);
+    }
+
+    const data = await loadWorldCupMatches();
+
+    matchesCache = data;
+    matchesCacheTime = now;
+    writeBackupMatches(data);
+
+    return res.json(data);
+  } catch (err) {
+    console.error(err);
+
+    if (matchesCache) {
+      return res.json(matchesCache);
+    }
+
+    const backupMatches = readBackupMatches();
+    if (backupMatches) {
+      return res.json(backupMatches);
+    }
+
+    return res.status(err?.status || 500).json({
+      error: err?.message || "API fail",
+      friendlyMessage: buildFriendlyError(err)
+    });
+  }
+});
+
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server running"));
